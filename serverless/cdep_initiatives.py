@@ -29,7 +29,7 @@ def scrape(event: dict, context):
             if tr.select("td")[2].text is not None:
                 d["tile"] = tr.select("td")[2].text.strip()
             initiatives.append(d)
-            table.put_item(d)
+            table.put_item(Item=d)
 
     return initiatives
 
