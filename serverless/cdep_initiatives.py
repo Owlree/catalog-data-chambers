@@ -21,8 +21,14 @@ def scrape(event: dict, context):
             d["year"] = year
             initiatives.append(d)
 
-    return {"initiatives": initiatives}
+    return {
+        "initiatives": initiatives,
+        "function_version": context.function_version
+    }
 
 
 if __name__ == "__main__":
-    print(scrape({"years": [2015]}, None))
+    class Context:
+        def __init__(self):
+            self.function_version = "DemoTest"
+    print(scrape({"years": [2015]}, Context()))
