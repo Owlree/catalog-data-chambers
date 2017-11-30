@@ -1,5 +1,3 @@
-import os
-
 import requests
 from bs4 import BeautifulSoup
 
@@ -25,7 +23,7 @@ def scrape(event: dict, context):
 
     return {
         "initiatives": initiatives,
-        "function_version": os.environ
+        "invoked_function_arn": context.invoked_function_arn
     }
 
 
