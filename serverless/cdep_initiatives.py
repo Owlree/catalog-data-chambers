@@ -8,7 +8,7 @@ def scrape(event: dict, context):
     for year in event["years"]:
         url = "http://www.cdep.ro/pls/proiecte/upl_pck2015.lista?cam=2&anp={year}".format(year=year)
         response = requests.get(url)
-        bs = BeautifulSoup(response.content, "lxml")
+        bs = BeautifulSoup(response.content)
         table_body = bs.select_one("#olddiv > div.grup-parlamentar-list.grupuri-parlamentare-list tbody")
 
         for tr in table_body.select("tr"):
