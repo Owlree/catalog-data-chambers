@@ -1,3 +1,4 @@
+import os
 import time
 import urllib
 
@@ -7,7 +8,7 @@ from bs4 import BeautifulSoup
 
 
 dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table('catpol_cdep_initiatives')
+table = dynamodb.Table(os.environ['table'])
 
 class Fields:
     SENAT = "- Senat:"
