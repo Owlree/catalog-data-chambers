@@ -9,7 +9,7 @@ dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table('catpol_cdep_initiatives')
 
 
-def scrape(event: dict, context):
+def main(event: dict, context):
 
     initiatives = []
     for year in event["years"]:
@@ -32,8 +32,3 @@ def scrape(event: dict, context):
             table.put_item(Item=d)
 
     return initiatives
-
-
-if __name__ == "__main__":
-    for i in scrape({"years": [2017]}, None):
-        print(i)
