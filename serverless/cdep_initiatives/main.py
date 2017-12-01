@@ -6,8 +6,8 @@ import boto3
 from bs4 import BeautifulSoup
 
 
-# dynamodb = boto3.resource('dynamodb')
-# table = dynamodb.Table('catpol_cdep_initiatives')
+dynamodb = boto3.resource('dynamodb')
+table = dynamodb.Table('catpol_cdep_initiatives')
 
 class Fields:
     SENAT = "- Senat:"
@@ -90,13 +90,14 @@ def get_initiative_dep(url):
             member["camera"] = "senat" if cam == 1 else "cdep"
             member["name"] = a.text.strip().replace("\xa0", " ")
             initiative["initiator"]["members"].append(member)
-            
+
     return initiative
 
 def main(event: dict, context):
 
-    initiatives = []
+    count = 0
     for year in event["years"]:
+        count += 1
         for camera in event["cameras"]:
             url = "http://www.cdep.ro/pls/proiecte/upl_pck2015.lista?cam={camera}&anp={year}".format(camera=camera, year=year)
             now = int(time.time())
@@ -108,12 +109,8 @@ def main(event: dict, context):
             for tr in table_body.select("tr"):
                 url = urllib.parse.urljoin(url, tr.select("td")[1].a.attrs["href"])
                 initiative = get_initiative_dep(url)
-                print(initiative)
-                # table.put_item(Item=initiative)
-
-
-
-    return initiatives
+                table.put_item(Item=initiative)
+    return count
 
 
 if __name__ == "__main__":
