@@ -1,13 +1,51 @@
 import time
 import urllib
+import re
 
 import requests
 import boto3
 from bs4 import BeautifulSoup
 
-dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table('catpol_cdep_initiatives')
 
+# dynamodb = boto3.resource('dynamodb')
+# table = dynamodb.Table('catpol_cdep_initiatives')
+
+def get_initiative_dep(url):
+    response = requests.get(url)
+    bs = BeautifulSoup(response.content)
+
+    initiative = {}
+    initiative["url"] = {
+        "cdep": url,
+        "senat": urllib.parse.urljoin(url, bs.find("td", text="- Senat:").next_sibling.a.attrs["href"])
+    }
+    initiative["id"] = {
+        "cdep": bs.find("td", text="- Camera Deputatilor:").next_sibling.text,
+        "senat": bs.find("td", text="- Senat:").next_sibling.text
+    }
+    initiative["title"] = bs.select_one("#olddiv h4").text.strip()
+
+    initiator = bs.find("td", text="Initiator:").next_sibling
+    if initiator.text.strip() == "Guvern":
+        initiative["initiator"] = {
+            "type": "institution",
+            "name": "guvern"
+        }
+    else:
+        initiative["initiator"] = {
+            "type": "group",
+            "members": []
+        }
+        for a in initiator.select("a"):
+            member = {}
+            member["url"] = urllib.parse.urljoin(url, a.attrs["href"])
+            o = urllib.parse.urlparse(member["url"])
+            cam = int(urllib.parse.parse_qs(o.query)["cam"][0])
+            member["camera"] = "senat" if cam == 1 else "cdep"
+            member["name"] = a.text.strip()
+            initiative["initiator"]["members"].append(member)
+
+    return initiative
 
 def main(event: dict, context):
 
@@ -19,16 +57,16 @@ def main(event: dict, context):
         bs = BeautifulSoup(response.content)
         table_body = bs.select_one("#olddiv > div.grup-parlamentar-list.grupuri-parlamentare-list tbody")
 
+        urls = []
         for tr in table_body.select("tr"):
-            d = dict()
-            d["url"] = urllib.parse.urljoin(url, tr.select("td")[1].a.attrs["href"])
-            d["year"] = year
-            d["updated"] = now
-            if tr.select("td")[1].a.string is not None:
-                d["number"] = tr.select("td")[1].a.string.strip().upper()
-            if tr.select("td")[2].text is not None:
-                d["tile"] = tr.select("td")[2].text.strip()
-            initiatives.append(d)
-            table.put_item(Item=d)
+            url = urllib.parse.urljoin(url, tr.select("td")[1].a.attrs["href"])
+            initiative = get_initiative_dep(url)
+            print(initiative)
+
+
 
     return initiatives
+
+
+if __name__ == "__main__":
+    main({"years": [2017]}, None)
