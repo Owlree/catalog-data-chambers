@@ -1,4 +1,3 @@
-import os
 import time
 import urllib
 
@@ -6,9 +5,9 @@ import requests
 import boto3
 from bs4 import BeautifulSoup
 
-
 dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table(os.environ['table'])
+table = dynamodb.Table('catpol_cdep_initiatives')
+
 
 def scrape(event: dict, context):
 
@@ -28,7 +27,7 @@ def scrape(event: dict, context):
             if tr.select("td")[1].a.string is not None:
                 d["number"] = tr.select("td")[1].a.string.strip().upper()
             if tr.select("td")[2].text is not None:
-                d["tile"] = "Cucurigi test"
+                d["tile"] = tr.select("td")[2].text.strip()
             initiatives.append(d)
             table.put_item(Item=d)
 
