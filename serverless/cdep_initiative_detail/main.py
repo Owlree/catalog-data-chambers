@@ -1,4 +1,4 @@
 
 
-def detail(event, context):
+def main(event, context):
     return "Hello, World!"
