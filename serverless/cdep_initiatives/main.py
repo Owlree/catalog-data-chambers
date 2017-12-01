@@ -1,14 +1,13 @@
 import time
 import urllib
-import re
 
 import requests
 import boto3
 from bs4 import BeautifulSoup
 
 
-# dynamodb = boto3.resource('dynamodb')
-# table = dynamodb.Table('catpol_cdep_initiatives')
+dynamodb = boto3.resource('dynamodb')
+table = dynamodb.Table('catpol_cdep_initiatives')
 
 def get_initiative_dep(url):
     response = requests.get(url)
@@ -42,7 +41,7 @@ def get_initiative_dep(url):
             o = urllib.parse.urlparse(member["url"])
             cam = int(urllib.parse.parse_qs(o.query)["cam"][0])
             member["camera"] = "senat" if cam == 1 else "cdep"
-            member["name"] = a.text.strip()
+            member["name"] = a.text.strip().replace("\xc2\xa0", " ")
             initiative["initiator"]["members"].append(member)
 
     return initiative
@@ -61,7 +60,7 @@ def main(event: dict, context):
         for tr in table_body.select("tr"):
             url = urllib.parse.urljoin(url, tr.select("td")[1].a.attrs["href"])
             initiative = get_initiative_dep(url)
-            print(initiative)
+            table.put_item(initiative)
 
 
 
