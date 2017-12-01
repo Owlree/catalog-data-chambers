@@ -60,7 +60,7 @@ def main(event: dict, context):
         for tr in table_body.select("tr"):
             url = urllib.parse.urljoin(url, tr.select("td")[1].a.attrs["href"])
             initiative = get_initiative_dep(url)
-            table.put_item(initiative)
+            table.put_item(Item=initiative)
 
 
 
